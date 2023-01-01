@@ -475,7 +475,7 @@ line_ignored ()
 {
     if (pass == 1)
 	fprintf (stderr, "%3d: WARNING: all text after .END ignored\n",
-		 line_num);
+		 line_num); 
 }
 
 static int
@@ -760,7 +760,7 @@ generate_instruction (operands_t operands, const char* opstr)
 	    //val = find_label (o1, 9);
 	    write_value (0x40E);
 
-        break; 
+        break;
     
     case OP_NAND:
         if (operands == O_RRI) {
