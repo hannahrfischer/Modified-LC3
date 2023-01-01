@@ -1,0 +1,5 @@
+	.ORIG x3000
+	LD R2, #2
+	LD R3, #3
+	MLT  R1, R2, R3
+	.END
