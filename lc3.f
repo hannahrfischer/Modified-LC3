@@ -724,15 +724,44 @@ generate_instruction (operands_t operands, const char* opstr)
     case OP_MLT:
         /* set  r1 to 0 */
         write_value (0x1000 | (r1 << 9) | (r1 << 6) | (0x000));
-        /* create offsite vars */
+        /* create temp vars */
         write_value (0x3000 | (r1 << 9) | (0x0046));
         write_value (0x3000 | (r2 << 9) | (0x0046));
         write_value (0x3000 | (r3 << 9) | (0x0046));
         /* set r7 to -1 to keep track of how many negative inputs */
         write_value(0x5FE0);
         write_value(0x1FFF);
+
         /* check if r2 is negative */
+        write_value (0x5020 | (r2 << 9) | (r2 << 6) | (0x0001));
+        write_value (0x0403); // branch if 0 (meaning pos) prob change this
+        write_value(0x1FE1); // add one to r7 if negative
+
+        /* check if r3 is negative */
+        write_value (0x5020 | (r3 << 9) | (r3 << 6) | (0x0001)); // branch to here from r2
+
+        /* branch if negative cause we don't need to negate */
+        write_value (0x0203);
+
+        /* not and add 1 */
+        write_value (0x903F | (r3 << 9) | (r3 << 6));
+		write_value (0x1000 | (r3 << 9) | (r3 << 6) | (0x0001));
+
+        /* branch no matter what to skip the stuff for if r3 is negative */
+        write_value(0x0E02);
+
+        /* ld temp r3 back into r3 */
+        write_value (0x2000 | (r3 << 9) | (0x003B));
+
+        /* negate */
+        write_value (0x0401); // branch if 0 (meaning pos)
+        write_value(0x1FE1); // add one to r7 if negative
+
+        /* time to multiply */
         
+
+
+
         break;
     
     case OP_NAND:
