@@ -356,13 +356,13 @@ main (int argc, char** argv)
     if ((ext = strrchr (fname, '.')) == NULL || strcmp (ext, ".asm") != 0) {
 	ext = fname + len;
         strcpy (ext, ".asm");
-    }
-
+    }      
+      
     /* Open input file. */
     if ((lc3in = fopen (fname, "r")) == NULL) {
         fprintf (stderr, "Could not open %s for reading.\n", fname);
 	return 2;
-    }
+    } 
 
     /* Open output files. */
     strcpy (ext, ".obj");
@@ -780,6 +780,7 @@ generate_instruction (operands_t operands, const char* opstr)
         break;
     
     case OP_NAND:
+        /* i need to add comments in many places*/
         if (operands == O_RRI) {
 	    	/* Check or read immediate range (error in first pass
 		   prevents execution of second, so never fails). */
