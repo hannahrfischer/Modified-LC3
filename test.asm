@@ -1,3 +1,3 @@
 	.ORIG x3000
-	MLT R1, R2, R3
+	RBR x0001
 	.END

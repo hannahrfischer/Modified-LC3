@@ -61,7 +61,7 @@ enum opcode_t {
     OP_LEA, OP_NOT, OP_RTI, OP_ST, OP_STI, OP_STR, OP_TRAP,
 
     /* new opcodes */
-    OP_RST, OP_SUB, OP_MLT, OP_NAND, OP_MAX, OP_NEG,
+    OP_RST, OP_SUB, OP_MLT, OP_NAND, OP_MAX, OP_NEG, OP_XOR,
 
     /* trap pseudo-ops */
     OP_GETC, OP_HALT, OP_IN, OP_OUT, OP_PUTS, OP_PUTSP,
@@ -84,7 +84,7 @@ static const char* const opnames[NUM_OPS] = {
     "NOT", "RTI", "ST", "STI", "STR", "TRAP",
 
     /* new opcodes */
-    "RST", "SUB", "MLT", "NAND", "MAX", "NEG", 
+    "RST", "SUB", "MLT", "NAND", "MAX", "NEG", "XOR",
 
     /* trap pseudo-ops */
     "GETC", "HALT", "IN", "OUT", "PUTS", "PUTSP",
@@ -141,6 +141,7 @@ static const int op_format_ok[NUM_OPS] = {
     0x003, /* NAND: RRR or RRI formats only */
     0x003, /* MAX: RRR or RRI formats only */
     0x004, /* NEG: RR format only          */
+    0x003, /* XOR: RRR or RRI formats only */
 
     /* trap pseudo-op formats (no operands) */
     0x200, /* GETC: no operands allowed    */
@@ -270,6 +271,7 @@ MLT      {inst.op = OP_MLT;  BEGIN (ls_operands);}
 NAND      {inst.op = OP_NAND;  BEGIN (ls_operands);}
 NEG      {inst.op = OP_NEG;  BEGIN (ls_operands);}
 MAX      {inst.op = OP_MAX;  BEGIN (ls_operands);}
+XOR      {inst.op = OP_XOR;  BEGIN (ls_operands);}
 
     /* rules for trap pseudo-ols */
 GETC      {inst.op = OP_GETC;  BEGIN (ls_operands);}
@@ -782,10 +784,11 @@ generate_instruction (operands_t operands, const char* opstr)
 	    	/* Check or read immediate range (error in first pass
 		   prevents execution of second, so never fails). */
 	        (void)read_val (o3, &val, 5);
+		    write_value (0x1020 | (r1 << 9) | (r2 << 6) | (val & 0x1F));
+	    } else {
+            write_value (0x1000 | (r1 << 9) | (r2 << 6) | r3);
+        }
         write_value (0x903F | (r1 << 9) | (r2 << 6));
-		write_value (0x1020 | (r1 << 9) | (r2 << 6) | (val & 0x1F));
-	    } else
-		write_value (0x1000 | (r1 << 9) | (r2 << 6) | r3);
 	    break;
 
     case OP_MAX:
@@ -814,6 +817,27 @@ generate_instruction (operands_t operands, const char* opstr)
         /* add one */
         write_value (0x1020 | (r2 << 9) | (r2 << 6) | (0x001));
         break;
+
+    case OP_XOR:
+        /* negate r2 */
+        write_value (0x903F | (r1 << 9) | (r2 << 6));
+        write_value (0x1020 | (r2 << 9) | (r2 << 6) | (0x001));
+        /* add r2 and r3 together */
+        if (operands == O_RRI) {
+	    	/* Check or read immediate range (error in first pass
+		   prevents execution of second, so never fails). */
+	        (void)read_val (o3, &val, 5);
+		write_value (0x1020 | (r1 << 9) | (r2 << 6) | (val & 0x1F));
+	    } else
+		write_value (0x1000 | (r1 << 9) | (r2 << 6) | r3);
+        /* branch based on result */
+        write_value(0x0402); // result is zero
+        write_value(0x0A03); // result is one
+        /* set register */
+        write_value (0x5020 | (r1 << 9) | (r1 << 6) | (0x0000));
+        
+        break;
+
 
 	/* Generate trap pseudo-ops. */
 	case OP_GETC:  write_value (0xF020); break;
