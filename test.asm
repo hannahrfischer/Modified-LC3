@@ -1,3 +1,3 @@
 	.ORIG x3000
-	MAX R1, R2, R3
+	MLT R1, R2, R3
 	.END

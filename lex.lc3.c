@@ -3402,7 +3402,7 @@ line_ignored ()
 {
     if (pass == 1)
 	fprintf (stderr, "%3d: WARNING: all text after .END ignored\n",
-		 line_num);
+		 line_num); 
 }
 
 static int
@@ -3648,46 +3648,17 @@ generate_instruction (operands_t operands, const char* opstr)
         }
 	    break; 
 
-    case OP_MLT:    ;
-        /* checks if any or all numbers are negative and deals with it accordingly */
-        int is_neg = 0;
-        /*
-        if ((r2 & 0x001 == 0x001) && (r3 & 0x001 == 0x001)) {
-            /* not and plus one *
-            write_value (0x903F | (r2 << 9) | (r2 << 6));
-		    write_value (0x1020 | (r2 << 9) | (r2 << 6) | (0x001));
-
-            /* keep r3 negative so we can add to it later 
-        } 
-        else if (r2 & 0x001 == 0x001) {
-            /* not and plus one *
-            write_value (0x903F | (r2 << 9) | (r2 << 6));
-		    write_value (0x1020 | (r2 << 9) | (r2 << 6) | (0x001)); 
-
-            /* make r3 negative*
-            write_value (0x903F | (r3 << 9) | (r3 << 6));
-		    write_value (0x1020 | (r3 << 9) | (r3 << 6) | (0x001)); 
-
-            is_neg = 1;      
-        } else if (r3 & 0x001 == 0x001) {
-            is_neg = 1;
-        } else {
-            write_value (0x903F | (r3 << 9) | (r3 << 6));
-		    write_value (0x1020 | (r3 << 9) | (r3 << 6) | (0x001)); 
-        } 
-        */
-        write_value (0x903F | (r3 << 9) | (r3 << 6));
-		write_value (0x1020 | (r3 << 9) | (r3 << 6) | (0x001)); 
-
-        /* add r2 to itself and substract one from r3 until = 0 */
-		write_value (0x1000 | (r1 << 9) | (r2 << 6) | r2);
-        write_value (0x1020 | (r3 << 9) | (r3 << 6) | (0x001)); 
-
-        /* branch until r3 is 0 */
-	    //val = find_label (o1, 9);
-	    write_value (0x40E);
-
-        break; 
+    case OP_MLT:
+        /* set  r1 to 0 */
+        write_value (0x1000 | (r1 << 9) | (r1 << 6) | (0x000));
+        /* create offsite vars */
+        write_value (0x3000 | (r1 << 9) | (0x0046));
+        write_value (0x3000 | (r2 << 9) | (0x0046));
+        write_value (0x3000 | (r3 << 9) | (0x0046));
+        /* set r7 to keep track of how many negative inputs */
+        write_value(0x5FE0);
+        write_value(0x1FFF);
+        break;
     
     case OP_NAND:
         if (operands == O_RRI) {
@@ -3716,8 +3687,7 @@ generate_instruction (operands_t operands, const char* opstr)
         /* branch forward three */
         write_value (0x802);
         write_value (0x1020 | (r1 << 9) | (r2 << 6) | (0x000));
-        write_value (0xF025);
-
+        write_value (0xF025); /* halt*/
         write_value (0x1020 | (r1 << 9) | (r3 << 6) | (0x000));
         break;
 
@@ -3727,8 +3697,6 @@ generate_instruction (operands_t operands, const char* opstr)
         /* add one */
         write_value (0x1020 | (r2 << 9) | (r2 << 6) | (0x001));
         break;
-
-
 
 	/* Generate trap pseudo-ops. */
 	case OP_GETC:  write_value (0xF020); break;
