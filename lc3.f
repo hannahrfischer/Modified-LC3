@@ -818,26 +818,6 @@ generate_instruction (operands_t operands, const char* opstr)
         write_value (0x1020 | (r2 << 9) | (r2 << 6) | (0x001));
         break;
 
-    case OP_XOR:
-        /* negate r2 */
-        write_value (0x903F | (r1 << 9) | (r2 << 6));
-        write_value (0x1020 | (r2 << 9) | (r2 << 6) | (0x001));
-        /* add r2 and r3 together */
-        if (operands == O_RRI) {
-	    	/* Check or read immediate range (error in first pass
-		   prevents execution of second, so never fails). */
-	        (void)read_val (o3, &val, 5);
-		write_value (0x1020 | (r1 << 9) | (r2 << 6) | (val & 0x1F));
-	    } else
-		write_value (0x1000 | (r1 << 9) | (r2 << 6) | r3);
-        /* branch based on result */
-        write_value(0x0402); // result is zero
-        write_value(0x0A03); // result is one
-        /* set register */
-        write_value (0x5020 | (r1 << 9) | (r1 << 6) | (0x0000));
-        break;
-
-
 	/* Generate trap pseudo-ops. */
 	case OP_GETC:  write_value (0xF020); break;
 	case OP_HALT:  write_value (0xF025); break;
