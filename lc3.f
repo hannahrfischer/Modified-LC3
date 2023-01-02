@@ -84,7 +84,7 @@ static const char* const opnames[NUM_OPS] = {
     "NOT", "RTI", "ST", "STI", "STR", "TRAP",
 
     /* new opcodes */
-    "RST", "SUB", "MLT", "NAND", "MAX", "NEG",
+    "RST", "SUB", "MLT", "NAND", "MAX", "NEG", 
 
     /* trap pseudo-ops */
     "GETC", "HALT", "IN", "OUT", "PUTS", "PUTSP",
@@ -727,6 +727,7 @@ generate_instruction (operands_t operands, const char* opstr)
         /* create temp vars */
         write_value (0x3000 | (r1 << 9) | (0x0046));
         write_value (0x3000 | (r2 << 9) | (0x0046));
+
         write_value (0x3000 | (r3 << 9) | (0x0046));
         /* set r7 to -1 to keep track of how many negative inputs */
         write_value(0x5FE0);
@@ -747,20 +748,32 @@ generate_instruction (operands_t operands, const char* opstr)
         write_value (0x903F | (r3 << 9) | (r3 << 6));
 		write_value (0x1000 | (r3 << 9) | (r3 << 6) | (0x0001));
 
-        /* branch no matter what to skip the stuff for if r3 is negative */
-        write_value(0x0E02);
-
         /* ld temp r3 back into r3 */
         write_value (0x2000 | (r3 << 9) | (0x003B));
 
+        /* branch no matter what to skip the stuff for if r3 is negative */
+        write_value(0x0E02);
+
         /* negate */
-        write_value (0x0401); // branch if 0 (meaning pos)
+        write_value(0x0401); // branch if 0 (meaning pos)
         write_value(0x1FE1); // add one to r7 if negative
 
         /* time to multiply */
-        
+        write_value(0x1FE0); // add 0 to r7
 
+        /* branch depending on if the outcome will be negative or positive */
+        write_value (0x0C02); // branch if zero or negative
+        /* positive we negate r2 */
+        write_value (0x903F | (r2 << 9) | (r2 << 6));
+		write_value (0x1020 | (r2 << 9) | (r2 << 6) | (0x0001));
 
+        /* load temp r2 into r7 */
+        write_value(0x2E33);
+
+        /* add r7 to r1 until r3 equals zero*/
+		write_value(0x1247);
+        write_value (0x1020 | (r3 << 9) | (r3 << 6) | (0x0001));
+        write_value(0x05FD); // branch if r3 > 0
 
         break;
     
