@@ -2,9 +2,10 @@
 // Scope level 0:
 //	Symbol Name       Page Address
 //	----------------  ------------
-//	ONE               3000
-//	TWO               3001
-//	THREE             3002
-//	FOUR              3003
-//	FIVE              3004
+//	ZERO              3008
+//	ONE               3009
+//	TWO               300A
+//	THREE             300B
+//	FOUR              300C
+//	FIVE              300D
 

@@ -20,7 +20,27 @@ tools) specifies those conditions.  There is absolutely no warranty for
 the LC-3 tools distribution, as described in the file NO_WARRANTY (also
 distributed with the tools).
 
+-----------------------------
+       MODIFIED LC-3
+-----------------------------
 
+The lc3.f file in this repository has 7 new instructions added to the LC-3. To use the 
+new instructions, call them like any other instruction in the LC-3 in an .asm file. 
+The new instructions are:
+RST- this resets a register to 0 (ex: RST R0)
+SUB- this subtracts either two registers or a register and a value
+     (ex: SUB R1, R2, R3 or SUB R1, R2, #3)
+MLT- this multiplies either two registers or a register and a value 
+     (ex: MLT R1, R2, R3 or MLT R1, R2, #3)
+MAX- this returns the max of either two registers or a register and a value 
+     (ex: MAX R1, R2, R3 or MAX R1, R2, #6)
+NEG- this negates a register to 0 (ex: RST R0)
+NAND- this is an implementation of a nand gate, using either two registers
+      or a register and a value (ex: NAND R1, R2, R3 or NAND R1,R2, #1)
+ABS- this returns the absolute value or a register or value (ex: ABS R1, R1 or ABS R1, #4)
+
+Included in this repository are test files for each of the new instructions with comments
+of the correct output values.
 
 ---------------------
    NECESSARY TOOLS

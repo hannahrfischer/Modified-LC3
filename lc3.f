@@ -807,9 +807,9 @@ generate_instruction (operands_t operands, const char* opstr)
         }
         /* branch forward three */
         write_value (0x802);
-        write_value (0x1020 | (r1 << 9) | (r2 << 6) | (0x000));
-        write_value (0xF025); /* halt*/
         write_value (0x1020 | (r1 << 9) | (r3 << 6) | (0x000));
+        /* add branch here */
+        write_value (0x1020 | (r1 << 9) | (r2 << 6) | (0x000));
         break;
 
     case OP_NEG:
@@ -820,8 +820,20 @@ generate_instruction (operands_t operands, const char* opstr)
         break;
 
     case OP_ABS:
-        /* check if num is negative or positve */
+        /* set r7 equal to r2 */
+        write_value(0x5FE0);
+        write_value(0x1FC2);
 
+        /* check if r7 is negative */
+        write_value(0x5FE1);
+        /* branch if r7 is positive */
+        write_value(0x0402);
+        /* not */
+        write_value (0x903F | (r2 << 9) | (r2 << 6));
+        /* add one */
+        write_value (0x1020 | (r2 << 9) | (r2 << 6) | (0x001));
+
+        write_value(0x5FE0); // reset r7
         break;
 
 	/* Generate trap pseudo-ops. */

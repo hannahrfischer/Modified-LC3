@@ -1,3 +1,3 @@
 	.ORIG x3000
-	RND R1
+	 ABS R1, R2
 	.END

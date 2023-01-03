@@ -1,0 +1,10 @@
+// Symbol table
+// Scope level 0:
+//	Symbol Name       Page Address
+//	----------------  ------------
+//	ONE               3000
+//	TWO               3001
+//	THREE             3002
+//	FOUR              3003
+//	FIVE              3004
+
