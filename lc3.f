@@ -141,7 +141,7 @@ static const int op_format_ok[NUM_OPS] = {
     0x003, /* NAND: RRR or RRI formats only */
     0x003, /* MAX: RRR or RRI formats only */
     0x004, /* NEG: RR format only          */
-    0x003, /* ABS: RRR or RRI formats only */
+    0x004, /* ABS: RR format only          */
 
     /* trap pseudo-op formats (no operands) */
     0x200, /* GETC: no operands allowed    */
