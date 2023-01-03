@@ -61,7 +61,7 @@ enum opcode_t {
     OP_LEA, OP_NOT, OP_RTI, OP_ST, OP_STI, OP_STR, OP_TRAP,
 
     /* new opcodes */
-    OP_RST, OP_SUB, OP_MLT, OP_NAND, OP_MAX, OP_NEG, OP_XOR,
+    OP_RST, OP_SUB, OP_MLT, OP_NAND, OP_MAX, OP_NEG, OP_ABS,
 
     /* trap pseudo-ops */
     OP_GETC, OP_HALT, OP_IN, OP_OUT, OP_PUTS, OP_PUTSP,
@@ -84,7 +84,7 @@ static const char* const opnames[NUM_OPS] = {
     "NOT", "RTI", "ST", "STI", "STR", "TRAP",
 
     /* new opcodes */
-    "RST", "SUB", "MLT", "NAND", "MAX", "NEG", "XOR",
+    "RST", "SUB", "MLT", "NAND", "MAX", "NEG", "ABS",
 
     /* trap pseudo-ops */
     "GETC", "HALT", "IN", "OUT", "PUTS", "PUTSP",
@@ -141,7 +141,7 @@ static const int op_format_ok[NUM_OPS] = {
     0x003, /* NAND: RRR or RRI formats only */
     0x003, /* MAX: RRR or RRI formats only */
     0x004, /* NEG: RR format only          */
-    0x003, /* XOR: RRR or RRI formats only */
+    0x003, /* ABS: RRR or RRI formats only */
 
     /* trap pseudo-op formats (no operands) */
     0x200, /* GETC: no operands allowed    */
@@ -271,7 +271,7 @@ MLT      {inst.op = OP_MLT;  BEGIN (ls_operands);}
 NAND      {inst.op = OP_NAND;  BEGIN (ls_operands);}
 NEG      {inst.op = OP_NEG;  BEGIN (ls_operands);}
 MAX      {inst.op = OP_MAX;  BEGIN (ls_operands);}
-XOR      {inst.op = OP_XOR;  BEGIN (ls_operands);}
+ABS      {inst.op = OP_ABS;  BEGIN (ls_operands);}
 
     /* rules for trap pseudo-ols */
 GETC      {inst.op = OP_GETC;  BEGIN (ls_operands);}
@@ -724,50 +724,50 @@ generate_instruction (operands_t operands, const char* opstr)
 	    break; 
 
     case OP_MLT:
-        /* set  r1 to 0 */
-        write_value (0x1000 | (r1 << 9) | (r1 << 6) | (0x000));
+        /* add number to r3 if not already in register */
+        if (operands == O_RRI) {
+	    	/* Check or read immediate range (error in first pass
+		   prevents execution of second, so never fails). */
+	        (void)read_val (o3, &val, 5);
+		    write_value (0x56E0);
+            write_value (0x16E0| (val & 0x1F));
+	    } else {
+            write_value (0x000);
+            write_value (0x000);
+        }
+		
         /* create temp vars */
         write_value (0x3000 | (r1 << 9) | (0x0046));
         write_value (0x3000 | (r2 << 9) | (0x0046));
-
         write_value (0x3000 | (r3 << 9) | (0x0046));
+
         /* set r7 to -1 to keep track of how many negative inputs */
         write_value(0x5FE0);
         write_value(0x1FFF);
 
-        /* check if r2 is negative */
-        write_value (0x5020 | (r2 << 9) | (r2 << 6) | (0x0001));
-        write_value (0x0403); // branch if 0 (meaning pos) prob change this
-        write_value(0x1FE1); // add one to r7 if negative
+        /* set  r1 to 0 */
+        write_value (0x5020 | (r1 << 9) | (r1 << 6) | (0x000));
 
         /* check if r3 is negative */
-        write_value (0x5020 | (r3 << 9) | (r3 << 6) | (0x0001)); // branch to here from r2
-
-        /* branch if negative cause we don't need to negate */
-        write_value (0x0203);
-
-        /* not and add 1 */
-        write_value (0x903F | (r3 << 9) | (r3 << 6));
-		write_value (0x1000 | (r3 << 9) | (r3 << 6) | (0x0001));
-
-        /* ld temp r3 back into r3 */
-        write_value (0x2000 | (r3 << 9) | (0x003B));
-
-        /* branch no matter what to skip the stuff for if r3 is negative */
-        write_value(0x0E02);
-
-        /* negate */
-        write_value(0x0401); // branch if 0 (meaning pos)
+        write_value (0x5020 | (r3 << 9) | (r3 << 6) | (0x0001)); // edit to work with imm5
+        write_value (0x0403); // branch if 0 (meaning pos)
         write_value(0x1FE1); // add one to r7 if negative
 
-        /* time to multiply */
-        write_value(0x1FE0); // add 0 to r7
+        /* check if r2 is negative */
+        write_value (0x5020 | (r2 << 9) | (r2 << 6) | (0x0001)); // branch to here from r3
 
+        /* branch if zero  */
+        write_value (0x0203);
+        /* add one to r7 */
+
+        /* time to multiply */
+        /* load tempr2 back into r2 */
+        write_value(0x1FE0); // add 0 to r7 
         /* branch depending on if the outcome will be negative or positive */
-        write_value (0x0C02); // branch if zero or negative
-        /* positive we negate r2 */
-        write_value (0x903F | (r2 << 9) | (r2 << 6));
-		write_value (0x1020 | (r2 << 9) | (r2 << 6) | (0x0001));
+        // branch if zero or negative (do nothing)
+        /* positive we negate r3 */
+        write_value (0x903F | (r3 << 9) | (r3 << 6));
+		write_value (0x1020 | (r3 << 9) | (r3 << 6) | (0x0001));
 
         /* load temp r2 into r7 */
         write_value(0x2E33);
@@ -819,8 +819,9 @@ generate_instruction (operands_t operands, const char* opstr)
         write_value (0x1020 | (r2 << 9) | (r2 << 6) | (0x001));
         break;
 
-    case OP_XOR:
-        /* */
+    case OP_ABS:
+        /* check if num is negative or positve */
+
         break;
 
 	/* Generate trap pseudo-ops. */

@@ -1,3 +1,3 @@
 	.ORIG x3000
-	RBR x0001
+	RND R1
 	.END
